@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* 使用指定字体系列 */
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #chat-container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px; /* 增加内边距 */
+            max-width: 1000px; /* 增加最大宽度 */
+            width: 100%;
+            height: 600px; /* 设置固定高度 */
+            display: flex;
+            flex-direction: column; /* 使内容垂直排列 */
+        }
+        header {
+            background-color: #2e8b57; /* 深绿色背景 */
+            color: white; /* 字体颜色为白色 */
+            padding: 10px 0; /* 增加内边距 */
+            text-align: center; /* 居中对齐 */
+            margin-bottom: 20px; /* 底部间距 */
+        }
+        #messages {
+            flex-grow: 1; /* 让消息区域占据剩余空间 */
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 10px; /* 增加消息内边距 */
+            border-radius: 5px;
+        }
+        .user-message {
+            background-color: #e0f7fa; /* 用户消息背景色（淡蓝色） */
+            color: #0f5132; /* 用户消息文本色（深绿色） */
+            text-align: right;
+        }
+        .bot-message {
+            background-color: #f1f1f1; /* 机器人消息背景色（淡灰色） */
+            color: #1e1e1e; /* 机器人消息文本色（深灰色） */
+            text-align: left;
+        }
+        .loading-message {
+            background-color: #fff3cd; /* 加载消息背景色（淡黄色） */
+            color: #856404; /* 加载消息文本色（深黄色） */
+            text-align: center;
+            font-style: italic;
+        }
+        input[type="text"] {
+            width: calc(100% - 120px); /* 增大输入框宽度 */
+            padding: 15px; /* 增大输入框内边距 */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 5px;
+            font-size: 16px; /* 增大输入框字体 */
+        }
+        button {
+            padding: 15px 20px; /* 增大按钮内边距 */
+            background-color: #28a745; /* 按钮背景色（绿色） */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 16px; /* 增大按钮字体 */
+        }
+        button:hover {
+            background-color: #218838; /* 按钮悬停背景色（深绿色） */
+        }
+    </style>
+</head>
+<body>
+
+<div id="chat-container">
+    <header>
+        <h2>Campus Carbon Chatbot</h2>
+    </header>
+    <div id="messages"></div>
+    <div style="display: flex; justify-content: space-between;">
+        <input type="text" id="question" placeholder="Type your question here..." />
+        <button onclick="askQuestion()">Send</button>
+    </div>
+</div>
+
+<script>
+    async function askQuestion() {
+        const questionInput = document.getElementById('question');
+        const question = questionInput.value;
+        if (!question) return;
+
+        // 显示用户问题
+        displayMessage(question, 'user');
+
+        // 清空输入框
+        questionInput.value = '';
+
+        // 显示 loading 消息
+        const loadingMessage = displayMessage('waiting for the response...', 'loading');
+
+        try {
+            // 发送请求到后端
+            const response = await fetch('/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ question }),
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                // 替换 loading 消息为机器人的回答
+                updateMessage(loadingMessage, data.answer, 'bot');
+            } else {
+                updateMessage(loadingMessage, 'Error: ' + data.error, 'bot');
+            }
+        } catch (error) {
+            updateMessage(loadingMessage, 'Error: ' + error.message, 'bot');
+        }
+    }
+
+    function displayMessage(message, sender) {
+        const messagesContainer = document.getElementById('messages');
+        const messageElement = document.createElement('div');
+        messageElement.className = 'message ' + (sender === 'user' ? 'user-message' : sender === 'bot' ? 'bot-message' : 'loading-message');
+        messageElement.innerText = message;
+        messagesContainer.appendChild(messageElement);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight; // 滚动到最新消息
+        return messageElement; // 返回消息元素以便后续更新
+    }
+
+    function updateMessage(messageElement, newMessage, sender) {
+        messageElement.className = 'message ' + (sender === 'bot' ? 'bot-message' : 'loading-message');
+        messageElement.innerText = newMessage;
+    }
+</script>
+
+</body>
+</html>
