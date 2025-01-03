@@ -201,15 +201,10 @@ class TextQA:
                   '''
         q = list(self.questions[-1]['question'].split())
 
-        if 'Lionel' in q or 'proof' in q:
-            print('\n\n\n')
-            print(material)
-            # os.system('clear')
-        else:
-            responses = self.get_glm(prompt)
-            print('\n\n\n')
-            for response in responses:
-                print(response.choices[0].delta.content, end='')
+        responses = self.get_glm(prompt)
+        print('\n\n\n')
+        for response in responses:
+            print(response.choices[0].delta.content, end='')
 
     def ask_question(self):
         question = input("请输入你的问题 (输入 'exit' 退出): ")
