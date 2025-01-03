@@ -154,10 +154,7 @@ class TextQA:
                based on the following information {material}.
                '''
         q = list(self.questions[-1]['question'].split())
-        if 'Lionel' in q or 'proof' in q:
-            return material
-        else:
-            return self.get_glm(prompt)
+        return self.get_glm(prompt)
 
 
     def ask_question(self):
